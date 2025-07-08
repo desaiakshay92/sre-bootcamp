@@ -1,0 +1,29 @@
+# Treat all files as text and normalize line endings to LF in repo
+* text=auto
+
+# Explicitly declare line endings for common file types
+*.py text eol=lf
+*.sh text eol=lf
+*.ini text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.mako text eol=lf
+
+# Binary files — keep them as-is
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.tar.gz binary
+*.exe binary
+*.dll binary
+
+# Ignore line endings completely for these (optional)
+*.csv -text
+*.tsv -text

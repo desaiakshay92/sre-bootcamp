@@ -1,0 +1,9 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/bionic64"
+
+  # Forward port 8080 from guest to host
+  config.vm.network "forwarded_port", guest: 8080, host: 8080
+
+  # Provision using the bootstrap shell script
+  config.vm.provision "shell", path: "bootstrap.sh"
+end
