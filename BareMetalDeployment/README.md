@@ -1,4 +1,4 @@
-# 🚀 Production-Ready FastAPI Deployment with Vagrant, Docker Compose, and Nginx
+# 🚀 FastAPI Deployment with Vagrant, Docker Compose, and Nginx
 
 This project demonstrates a production-like deployment of a FastAPI application using:
 
@@ -19,8 +19,7 @@ This project demonstrates a production-like deployment of a FastAPI application 
 
 - [VirtualBox](https://www.virtualbox.org/)
 - [Vagrant](https://developer.hashicorp.com/vagrant/downloads)
-- [Git](https://git-scm.com/)
-- [Postman](https://www.postman.com/) (for testing)
+- [Postman](https://www.postman.com/)/Swagger(Inbuilt) (for testing)
 
 > 💡 All commands below should be run from your host machine unless specified otherwise.
 
