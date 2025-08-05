@@ -1,0 +1,121 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: crud-fastapi
+
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: crud-fastapi-config
+  namespace: crud-fastapi
+data:
+  DB_HOST: "postgres-service.postgres-ns.svc.cluster.local"
+  DB_PORT: "5432"
+  DB_NAME: "postgres"
+
+---
+
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: myapp-secret
+  namespace: crud-fastapi
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: vault-secret-store
+    kind: ClusterSecretStore
+  target:
+    name: myapp-k8s-secret
+    creationPolicy: Owner
+  data:
+  - secretKey: username
+    remoteRef:
+      key: kv/data/myapp
+      property: username
+  - secretKey: password
+    remoteRef:
+      key: kv/data/myapp
+      property: password
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crud-fastapi
+  namespace: crud-fastapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: crud-fastapi
+  template:
+    metadata:
+      labels:
+        app: crud-fastapi
+    spec:
+      containers:
+        - name: crud-fastapi
+          image: desaiakshay92/crud-fastapi:v1.0.0
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: crud-fastapi-config
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: crud-fastapi-config
+                  key: DB_PORT
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: crud-fastapi-config
+                  key: DB_NAME
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: myapp-k8s-secret
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: myapp-k8s-secret
+                  key: password
+          readinessProbe:
+            httpGet:
+              path: /healthcheck
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthcheck
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: crud-fastapi-service
+  namespace: crud-fastapi
+spec:
+  selector:
+    app: crud-fastapi
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+  type: ClusterIP

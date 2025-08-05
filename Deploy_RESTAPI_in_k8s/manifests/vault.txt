@@ -1,0 +1,85 @@
+Deploying Vault on Minikube primarily involves utilizing the official HashiCorp Vault Helm chart.
+Prerequisites:
+Minikube: Ensure Minikube is installed and a cluster is running.
+Code
+
+    minikube start
+Helm: Ensure Helm is installed on your local machine.
+Deployment Steps:
+Add HashiCorp Helm Repository.
+Code
+
+    helm repo add hashicorp https://helm.releases.hashicorp.com
+    helm repo update
+Create a Namespace for Vault (Optional but Recommended):
+Code
+
+    kubectl create namespace vault
+
+
+Install Vault using Helm.
+Code
+
+Create vault-values.yaml #Refer inside manifest directory
+helm install vault hashicorp/vault -n vault -f vault-values.yaml
+
+Verify Vault Deployment.
+Code
+
+    kubectl get pods -n vault
+Look for a pod named vault-0 (or similar) in the Running state.
+Access Vault (Optional - for UI/CLI access):
+If you need to interact with Vault via its UI or CLI, you can port-forward the Vault service:
+Code
+
+    kubectl port-forward service/vault 8200:8200 -n vault
+You can then access the Vault UI at http://localhost:8200 or use the Vault CLI by setting VAULT_ADDR=http://localhost:8200. Since server.dev.enabled=true was used, Vault will be unsealed and initialized, and you can typically log in with the root token printed during the helm install command or found in the Vault pod logs.
+
+🚀 Vault + Kubernetes Auth Setup (Quick Steps)
+Login to Vault
+
+bash
+Copy
+Edit
+vault login
+Enable Kubernetes Auth
+
+bash
+Copy
+Edit
+vault auth enable kubernetes
+Configure Kubernetes Auth
+
+bash
+Copy
+Edit
+vault write auth/kubernetes/config \
+  token_reviewer_jwt=@/var/run/secrets/kubernetes.io/serviceaccount/token \
+  kubernetes_host="https://kubernetes.default.svc" \
+  kubernetes_ca_cert=@/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+Create Vault Policy (eso-policy.hcl)
+
+hcl
+Copy
+Edit
+path "secret/data/*" {
+  capabilities = ["read"]
+}
+Apply it:
+
+bash
+Copy
+Edit
+vault policy write eso-policy /tmp/eso-policy.hcl
+Create Role for External Secrets
+
+bash
+Copy
+Edit
+vault write auth/kubernetes/role/eso \
+  bound_service_account_names=external-secrets \
+  bound_service_account_namespaces=external-secrets \
+  policies=eso-policy \
+  ttl=24h
+✅ Done!
+Vault is now ready to authenticate the external-secrets service account via Kubernetes.
